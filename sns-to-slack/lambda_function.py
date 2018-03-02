@@ -83,7 +83,8 @@ def get_slack_username(event_src):
         'cloudwatch': 'AWS CloudWatch',
         'autoscaling': 'AWS AutoScaling',
         'elasticache': 'AWS ElastiCache',
-        'rds': 'AWS RDS'}
+        'rds': 'AWS RDS',
+        'dms': 'AWS DMS'}
 
     try:
         return username_map[event_src]
@@ -209,6 +210,21 @@ def lambda_handler(event, context):
                 "title": "Details",
                 "value": "<{0}|{1}>".format(title_str, title_lnk_str)
             })
+    elif re.match("DMS Notification", sns.get('Subject') or ''):
+        event_src = 'dms'
+        message = json_msg['Event Message'] + json_msg['Identifier Link']
+        attachments = [{
+            "fallback": message,
+            "fields": [{
+                "title": "Event Time",
+                "value": json_msg['Event Time'],
+                "short": True
+            }, {
+                "title": "Event Source",
+                "value": json_msg['Event Source'],
+                "short": True
+            }]
+        }]
     else:
         event_src = 'other'
 
